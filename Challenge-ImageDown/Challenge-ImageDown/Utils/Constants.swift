@@ -17,4 +17,10 @@ struct Constants {
     ]
     
     public static let bgQueue = DispatchQueue(label: "bgQueue", qos: .background, attributes: .concurrent)
+    
+    public static let byteFormatter: ByteCountFormatter = {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB]
+        return formatter
+    }()
 }

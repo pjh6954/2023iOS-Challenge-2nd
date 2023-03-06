@@ -24,12 +24,6 @@ class ViewController: UIViewController {
     }
     private let viewModel : ViewControllerViewModel = .init()
     
-    private let byteFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter()
-        formatter.allowedUnits = [.useKB, .useMB]
-        return formatter
-    }()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -145,8 +139,8 @@ extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         print("CHECK  : \(session) , \(downloadTask)")
         print("CHECK_ : \(downloadTask)")
-        let written = byteFormatter.string(fromByteCount: totalBytesWritten)
-        let expected = byteFormatter.string(fromByteCount: totalBytesExpectedToWrite)
+        let written = Constants.byteFormatter.string(fromByteCount: totalBytesWritten)
+        let expected = Constants.byteFormatter.string(fromByteCount: totalBytesExpectedToWrite)
         print("Downloaded \(written) / \(expected)")
 
         DispatchQueue.main.async {

@@ -23,12 +23,6 @@ class DownloadImageModel {
     private var callback: ((String) -> Void)?
     private var progressCallback: ((Int) -> Void)?
     
-    private let byteFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter()
-        formatter.allowedUnits = [.useKB, .useMB]
-        return formatter
-    }()
-    
     init(urlStr: String) {
         self.urlStr = urlStr
     }
