@@ -47,7 +47,9 @@ class ViewController: UIViewController {
     
     
     private func viewModelInit() {
-        self.urlSessionSetting()
+        if self.viewModel.isUsingProgress {
+            self.urlSessionSetting()
+        }
         self.viewModel.tableReloadCallback = { [weak self] arr in
             guard let `self` = self else { return }
             DispatchQueue.main.async {

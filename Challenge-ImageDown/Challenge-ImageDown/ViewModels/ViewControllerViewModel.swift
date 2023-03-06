@@ -31,6 +31,7 @@ protocol ViewControllerViewModelType {
 
 class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerViewModelOutput, ViewControllerViewModelType {
     // Public
+    public let isUsingProgress = true
     public var data: [DownloadImageModel] { self.imageLoadedData }
     private let imageLoadedData : Array<DownloadImageModel> = [
         .init(urlStr: "https://images.unsplash.com/photo-1677552929439-082dabf4e88f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2370&q=80"), // https://unsplash.com/ko/%EC%82%AC%EC%A7%84/vk_Z_ya4u14
@@ -40,21 +41,22 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
         .init(urlStr: "https://images.unsplash.com/photo-1677455104504-364b0e16ef39?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2370&q=80") // https://unsplash.com/ko/%EC%82%AC%EC%A7%84/KvXQBeoolwU
     ]
     
-    // private var waitQueue: Queue<DownloadImageModel> = .init()
+    // Progress, non-progress 공통
     private var isLoading: Bool = false
-    // private var loadingData : [String: DownloadImageModel] = [:]
-    private var loadingData : [String: (DownloadImageModel, URLSessionDownloadTask)] = [:]
-    // private var startDownloadingData : [String: (DownloadImageModel, URLSessionDownloadTask)] = [:]
-    // private var taskResumeURLQueue: ArrayQueue<String> = .init()
-    private var taskResumeURLSet: Set<String> = .init()
-    // private var completeDataURLQueue: ArrayQueue<String> = .init()
     
+    // Progress 사용 안하는 방식
+    private var loadingDataWithoutProgress : [String: DownloadImageModel] = [:]
+    private var completeDataURLQueue: ArrayQueue<String> = .init()
+    
+    // Progress 사용
+    private var loadingData : [String: (DownloadImageModel, URLSessionDownloadTask)] = [:]
+    private var taskResumeURLSet: Set<String> = .init()
     private var session : URLSession!
     private let downloadQueue = DispatchQueue(label: "downloadImg", qos: .background, attributes: .concurrent)
+    
     // Input
     // 특정 인덱스 완료 후 reload 하도록 하거나, 모든 것들을 reload 하는데 사용되는 함수
     func reloadData(_ array: [Int]? = nil) {
-        
         self.tableReloadCallback?(array)
     }
     
@@ -73,10 +75,12 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
         self.reloadData()
     }
     
+    // Progress 사용 할 때 쓰기위한 것.
     func sessionSetting(_ session: URLSession) {
         self.session = session
     }
     
+    // Progress 사용 할 때 쓰기위한 것.
     func progressValue(_ downloadTask: URLSessionDownloadTask, value: Float) {
         for (_, dataValue) in self.loadingData {
             guard downloadTask.isEqual(dataValue.1) else { continue }
@@ -87,6 +91,7 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
         
     }
     
+    // Progress 사용 할 때 쓰기위한 것.
     func downloadComplete(_ downloadTask: URLSessionDownloadTask ,img: UIImage?) {
         var completeKey : String!
         for (key, dataValue) in self.loadingData {
@@ -106,29 +111,28 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
     // Output
     var tableReloadCallback: (([Int]?) -> Void)?
     
-    
     var input: ViewControllerViewModelInput { self }
     var output: ViewControllerViewModelOutput { self }
 }
 
 extension ViewControllerViewModel {
     private func setImgDataLoad(data: DownloadImageModel) {
-        /*
-        data.reloadData(callback: reloadDataCallback(_:), progressCallback: reloadProgressCallback(_:))
-        self.loadingData[data.urlStr] = data
-        */
-        
-        // Progress 추가버전
-        guard let session else { return }
-        guard let url = data.url else { return }
-        // session.downloadTask(with: url).resume()
-        if self.taskResumeURLSet.contains(data.urlStr) {
-            return
+        if isUsingProgress {
+            // Progress 추가버전
+            guard let session else { return }
+            guard let url = data.url else { return }
+            // session.downloadTask(with: url).resume()
+            if self.taskResumeURLSet.contains(data.urlStr) {
+                return
+            }
+            let downloadTask = session.downloadTask(with: url)
+            
+            self.loadingData[data.urlStr] = (data, downloadTask)
+            self.startDownload()
+        } else {
+            data.reloadData(callback: reloadDataCallback(_:), progressCallback: reloadProgressCallback(_:))
+            self.loadingDataWithoutProgress[data.urlStr] = data
         }
-        let downloadTask = session.downloadTask(with: url)
-        
-        self.loadingData[data.urlStr] = (data, downloadTask)
-        self.startDownload()
     }
     
     // PROGRESS 추가하면서 추가된 함수
@@ -154,21 +158,19 @@ extension ViewControllerViewModel {
         }
     }
     
-    private func downloading() {
-        
-    }
-    
-    /*
+    // Progress 사용 안할 때 쓰기위한 것.
     private func reloadProgressCallback(_ index: Int) {
         self.reloadData(nil)
     }
     
+    // Progress 사용 안할 때 쓰기위한 것.
     private func reloadDataCallback(_ str: String) {
         self.completeDataURLQueue.enqueue(str)
         guard !isLoading else { return }
         self.loadingWithQueue()
     }
     
+    // Progress 사용 안할 때 쓰기위한 것.
     private func loadingWithQueue() {
         isLoading = true
         guard !completeDataURLQueue.isEmpty else {
@@ -193,5 +195,4 @@ extension ViewControllerViewModel {
         }
         self.loadingWithQueue()
     }
-    */
 }
