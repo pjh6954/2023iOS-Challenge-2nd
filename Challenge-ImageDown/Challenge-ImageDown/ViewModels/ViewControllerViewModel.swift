@@ -62,6 +62,10 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
             reloadData.reloadAllData()
             self.setImgDataLoad(data: reloadData)
         } else {
+            // 여러번 동시에 할 때 강제종료 현상 발생되는 것 때문에 아래 코드 추가
+            if self.isLoading {
+                return
+            }
             for element in imageLoadedData.reversed() {
                 element.reloadAllData()
                 self.setImgDataLoad(data: element)
