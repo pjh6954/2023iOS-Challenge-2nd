@@ -39,37 +39,26 @@ struct ArrayQueue<T> {
         queue.removeAll()
     }
 }
-/*
-struct Queue<T> {
-    private var queue: [T?] = []
-    private var head: Int = 0
-    
-    public var count: Int {
-        return queue.count
-    }
-    
-    public var isEmpty: Bool {
-        return queue.isEmpty
-    }
-    
-    public mutating func enqueue(_ element: T) {
-        queue.append(element)
-    }
-    
-    public mutating func dequeue() -> T? {
-        guard head <= queue.count, let element = queue[head] else { return nil }
-        queue[head] = nil
-        head += 1
-        
-        if head > 50 {
-            queue.removeFirst(head)
-            head = 0
-        }
-        return element
+
+extension UIImageView {
+    /// URL에서 이미지 다운로드하여 이미지뷰에 적용
+    func download(from url: URL, completion: @escaping(_ error: Error?, _ progress: Float) -> Void) {
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil, let image = UIImage(data: data) else {
+                DispatchQueue.main.async { [weak self] in
+                    // 실패 시 기본이미지
+                    self?.image = UIImage(systemName: "photo.artframe")
+                    completion(error, 0.0)
+                }
+                return
+            }
+            DispatchQueue.main.async { [weak self] in
+                self?.image = image
+                completion(nil, 1.0)
+            }
+        }.resume()
     }
 }
-*/
-
 
 // 출처 : https://stackoverflow.com/questions/25329186/safe-bounds-checked-array-lookup-in-swift-through-optional-bindings/30593673#30593673%EF%BB%BF
 extension Collection {
@@ -80,17 +69,6 @@ extension Collection {
     }
 }
 
-/*
-extension Array {
-    subscript (safe index: Int) -> Element? {
-        // iOS 9 or later
-        return indices ~= index ? self[index] : nil
-        // iOS 8 or earlier
-        // return startIndex <= index && index < endIndex ? self[index] : nil
-        // return 0 <= index && index < self.count ? self[index] : nil
-    }
-}
-*/
 
 extension NSLayoutConstraint {
     /**

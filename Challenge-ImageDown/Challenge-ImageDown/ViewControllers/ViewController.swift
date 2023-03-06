@@ -13,8 +13,14 @@ class ViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var btnLoadAll: UIButton!
     
-    // private let loadingData: [Int] = [0,1,2,3,4]
-    
+    private let isUsingVM: Bool = false
+    private var datas: [DownloadImageModel] {
+        if isUsingVM {
+            return []
+        } else {
+            return Constants.imageLoadedData
+        }
+    }
     private let viewModel : ViewControllerViewModel = .init()
     
     private let byteFormatter: ByteCountFormatter = {
@@ -27,7 +33,11 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         self.viewInit()
-        self.viewModelInit()
+        if self.isUsingVM {
+            self.viewModelInit()
+        } else {
+            
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -68,27 +78,45 @@ class ViewController: UIViewController {
     }
     
     private func cellCallback(_ index: Int) {
-        self.viewModel.loadImageStart(index)
+        if self.isUsingVM {
+            self.viewModel.loadImageStart(index)
+        }
     }
     
     @objc private func actionBtnReloadAll(_ sender: UIButton) {
-        self.viewModel.loadImageStart(nil)
+        if self.isUsingVM {
+            self.viewModel.loadImageStart(nil)
+        } else {
+            for index in 0..<self.datas.count {
+                guard let cell = self.tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ImageLoadTableViewCell else { continue }
+                cell.loadImage()
+            }
+        }
     }
 }
 
 extension ViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.data.count
+        if self.isUsingVM {
+            return viewModel.data.count
+        } else {
+            return self.datas.count
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ImageLoadTableViewCell else {
             return ImageLoadTableViewCell(frame: .zero)
         }
-        guard let data = self.viewModel.data[safe: indexPath.row] else { return cell }
-        print("DATA PROGRESS : \(data.progress)")
-        cell.setDatas(data.image, index: indexPath.row, progress: data.progress)
-        cell.btnCallback = self.cellCallback
+        if self.isUsingVM {
+            guard let data = self.viewModel.data[safe: indexPath.row] else { return cell }
+            print("DATA PROGRESS : \(data.progress)")
+            cell.setDatas(data.image, index: indexPath.row, progress: data.progress)
+            cell.btnCallback = self.cellCallback
+        } else {
+            guard let data = self.datas[safe: indexPath.row] else { return cell }
+            cell.setData(data)
+        }
         return cell
     }
     
@@ -99,6 +127,7 @@ extension ViewController : UITableViewDelegate {
     
 }
 
+// 아래는 Progress 사용할 때 이용.
 extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
     private func urlSessionSetting() {
         let config = URLSessionConfiguration.default
@@ -107,7 +136,9 @@ extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
         // Don't specify a completion handler here or the delegate won't be called
         // session.downloadTask(with: url).resume()
         // Session을 viewmodel에 전달.
-        self.viewModel.sessionSetting(session)
+        if self.isUsingVM {
+            self.viewModel.sessionSetting(session)
+        }
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
@@ -119,8 +150,9 @@ extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
 
         DispatchQueue.main.async {
             // self.progressView.progress = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
-            self.viewModel.progressValue(downloadTask, value: Float(totalBytesWritten) / Float(totalBytesExpectedToWrite))
-            
+            if self.isUsingVM {
+                self.viewModel.progressValue(downloadTask, value: Float(totalBytesWritten) / Float(totalBytesExpectedToWrite))
+            }
         }
     }
 
@@ -134,7 +166,9 @@ extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
                 // self.imageView.contentMode = .scaleAspectFit
                 // self.imageView.clipsToBounds = true
                 // self.imageView.image = image
-                self.viewModel.downloadComplete(downloadTask, img: image)
+                if self.isUsingVM {
+                    self.viewModel.downloadComplete(downloadTask, img: image)
+                }
             }
         } else {
             fatalError("Cannot load the image")

@@ -70,7 +70,7 @@ class ProgressView: UIView {
             NSLayoutConstraint.activate([self.widthConstraint])
             return
         }
-        print("FLOOAT? \(CGFloat(value))")
+        // print("FLOOAT? \(CGFloat(value))")
         NSLayoutConstraint.deactivate([
             self.widthConstraint
         ])
