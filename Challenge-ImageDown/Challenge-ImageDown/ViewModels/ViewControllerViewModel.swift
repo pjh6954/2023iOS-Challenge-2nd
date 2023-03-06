@@ -47,6 +47,7 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
     private var loadingData : [String: (DownloadImageModel, URLSessionDownloadTask)] = [:]
     private var taskResumeURLSet: Set<String> = .init()
     private var session : URLSession!
+    
     private let downloadQueue = DispatchQueue(label: "downloadImg", qos: .background, attributes: .concurrent)
     
     // Input

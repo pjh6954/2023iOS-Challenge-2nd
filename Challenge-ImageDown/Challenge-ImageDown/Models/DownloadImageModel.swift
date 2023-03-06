@@ -10,8 +10,10 @@ import UIKit
 class DownloadImageModel {
     let urlStr : String
     var url: URL? { URL(string: urlStr) }
+    
     var progress: Float { progressValue }
     private var progressValue: Float = 0.0
+    
     var isLoading: Bool { loading }
     private var loading: Bool = false
     
@@ -77,7 +79,7 @@ class DownloadImageModel {
             }
         }
         */
-        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + .milliseconds(500)) { [weak self] in
+        Constants.bgQueue.asyncAfter(deadline: .now() + .milliseconds(500)) { [weak self] in
             self?.downloadImage(from: url)
         }
     }
@@ -105,62 +107,3 @@ class DownloadImageModel {
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
     }
 }
-
-/*
-class ViewController: UIViewController, URLSessionDelegate, URLSessionDownloadDelegate {
-
-    @IBOutlet weak var imageView: UIImageView!
-    @IBOutlet weak var progressView: UIProgressView!
-
-    private let byteFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter()
-        formatter.allowedUnits = [.useKB, .useMB]
-        return formatter
-    }()
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-
-    @IBAction func downloadImage(sender : AnyObject) {
-        // A 10MB image from NASA
-        let url = URL(string: "https://photojournal.jpl.nasa.gov/jpeg/PIA08506.jpg")!
-
-        let config = URLSessionConfiguration.default
-        let session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
-
-        // Don't specify a completion handler here or the delegate won't be called
-        session.downloadTask(with: url).resume()
-    }
-
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        let written = byteFormatter.string(fromByteCount: totalBytesWritten)
-        let expected = byteFormatter.string(fromByteCount: totalBytesExpectedToWrite)
-        print("Downloaded \(written) / \(expected)")
-
-        DispatchQueue.main.async {
-            self.progressView.progress = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
-        }
-    }
-
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        // The location is only temporary. You need to read it or copy it to your container before
-        // exiting this function. UIImage(contentsOfFile: ) seems to load the image lazily. NSData
-        // does it right away.
-        if let data = try? Data(contentsOf: location), let image = UIImage(data: data) {
-            DispatchQueue.main.async {
-                self.imageView.contentMode = .scaleAspectFit
-                self.imageView.clipsToBounds = true
-                self.imageView.image = image
-            }
-        } else {
-            fatalError("Cannot load the image")
-        }
-
-    }
-}
-*/
