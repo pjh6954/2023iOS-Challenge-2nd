@@ -62,6 +62,7 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
     func loadImageStart(_ index: Int? = nil) {
         if let index = index {
             guard let reloadData = imageLoadedData[safe: index] else { return }
+            reloadData.reloadAllData()
             self.setImgDataLoad(data: reloadData)
         } else {
             for element in imageLoadedData.reversed() {
