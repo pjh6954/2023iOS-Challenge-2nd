@@ -47,6 +47,7 @@ class ViewController: UIViewController {
         self.tableView.register(nib, forCellReuseIdentifier: "cell")
         
         // self.tableView.reloadData()
+        self.btnLoadAll.accessibilityIdentifier = "btnLoadAll"
         self.btnLoadAll.addTarget(self, action: #selector(self.actionBtnReloadAll(_:)), for: .touchUpInside)
     }
     

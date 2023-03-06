@@ -32,7 +32,8 @@ protocol ViewControllerViewModelType {
 class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerViewModelOutput, ViewControllerViewModelType {
     // Public
     // isUsingProgress가 true인 경우 session 사용해서 progress update 되도록 구현. false인 경우, model에서 처리 후 image 갱신 처리.
-    public let isUsingProgress = true
+    public var isUsingProgress: Bool { return self.isUsingProgressValue }
+    private var isUsingProgressValue : Bool = true
     public var data: [DownloadImageModel] { self.imageLoadedData }
     
     // Progress, non-progress 공통
@@ -49,6 +50,19 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
     private var session : URLSession!
     
     private let downloadQueue = DispatchQueue(label: "downloadImg", qos: .background, attributes: .concurrent)
+    
+    // Test일 때만 할 수 있도록 하자.
+    // https://stackoverflow.com/a/29991529
+    func forTestIsUsingProgress(_ value: Bool) {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            // Code only executes when tests are running
+            isUsingProgressValue = value
+            print("PROGRESS VALUE CHANGE IN TEST : \(value)")
+        }
+        #endif
+        
+    }
     
     // Input
     // 특정 인덱스 완료 후 reload 하도록 하거나, 모든 것들을 reload 하는데 사용되는 함수

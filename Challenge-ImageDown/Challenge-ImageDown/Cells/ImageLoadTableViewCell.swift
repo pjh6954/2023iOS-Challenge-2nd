@@ -24,6 +24,7 @@ class ImageLoadTableViewCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
+        self.btnLoad.accessibilityIdentifier = "loadButton"
         self.btnLoad.addTarget(self, action: #selector(self.actionBtn(_:)), for: .touchUpInside)
         self.commonInit()
     }
