@@ -43,20 +43,22 @@ struct ArrayQueue<T> {
 extension UIImageView {
     /// URL에서 이미지 다운로드하여 이미지뷰에 적용
     func download(from url: URL, completion: @escaping(_ error: Error?, _ progress: Float) -> Void) {
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil, let image = UIImage(data: data) else {
-                DispatchQueue.main.async { [weak self] in
-                    // 실패 시 기본이미지
-                    self?.image = UIImage(systemName: "photo.artframe")
-                    completion(error, 0.0)
+        Constants.bgQueue.async {
+            URLSession.shared.dataTask(with: url) { data, response, error in
+                guard let data = data, error == nil, let image = UIImage(data: data) else {
+                    DispatchQueue.main.async { [weak self] in
+                        // 실패 시 기본이미지
+                        self?.image = UIImage(systemName: "photo.artframe")
+                        completion(error, 0.0)
+                    }
+                    return
                 }
-                return
-            }
-            DispatchQueue.main.async { [weak self] in
-                self?.image = image
-                completion(nil, 1.0)
-            }
-        }.resume()
+                DispatchQueue.main.async { [weak self] in
+                    self?.image = image
+                    completion(nil, 1.0)
+                }
+            }.resume()
+        }
     }
 }
 

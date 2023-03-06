@@ -72,7 +72,7 @@ class ImageLoadTableViewCell: UITableViewCell {
         self.progressView.updateProgressZeroToOne(progress)
     }
     
-    // photo.artframe
+    // 각 셀에 존재하는 load버튼 액션
     @objc private func actionBtn(_ sender: UIButton) {
         if let btnCallback {
             btnCallback(sender.tag)

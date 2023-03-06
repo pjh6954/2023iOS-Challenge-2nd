@@ -104,30 +104,6 @@ class DownloadImageModel {
     private func getData(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> ()) {
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
     }
-    
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        let written = byteFormatter.string(fromByteCount: totalBytesWritten)
-        let expected = byteFormatter.string(fromByteCount: totalBytesExpectedToWrite)
-        print("Downloaded \(written) / \(expected)")
-
-        DispatchQueue.main.async {
-            self.progressValue = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
-        }
-    }
-
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        // The location is only temporary. You need to read it or copy it to your container before
-        // exiting this function. UIImage(contentsOfFile: ) seems to load the image lazily. NSData
-        // does it right away.
-        if let data = try? Data(contentsOf: location), let image = UIImage(data: data) {
-            DispatchQueue.main.async {
-                self.imageData = image
-            }
-        } else {
-            fatalError("Cannot load the image")
-        }
-
-    }
 }
 
 /*
