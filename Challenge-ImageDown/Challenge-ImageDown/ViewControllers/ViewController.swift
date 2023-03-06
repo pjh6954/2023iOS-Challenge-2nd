@@ -17,6 +17,12 @@ class ViewController: UIViewController {
     
     private let viewModel : ViewControllerViewModel = .init()
     
+    private let byteFormatter: ByteCountFormatter = {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB]
+        return formatter
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -41,6 +47,7 @@ class ViewController: UIViewController {
     
     
     private func viewModelInit() {
+        self.urlSessionSetting()
         self.viewModel.tableReloadCallback = { [weak self] arr in
             guard let `self` = self else { return }
             DispatchQueue.main.async {
@@ -88,4 +95,48 @@ extension ViewController : UITableViewDataSource {
 
 extension ViewController : UITableViewDelegate {
     
+}
+
+extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
+    private func urlSessionSetting() {
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+
+        // Don't specify a completion handler here or the delegate won't be called
+        // session.downloadTask(with: url).resume()
+        // Session을 viewmodel에 전달.
+        self.viewModel.sessionSetting(session)
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        print("CHECK  : \(session) , \(downloadTask)")
+        print("CHECK_ : \(downloadTask)")
+        let written = byteFormatter.string(fromByteCount: totalBytesWritten)
+        let expected = byteFormatter.string(fromByteCount: totalBytesExpectedToWrite)
+        print("Downloaded \(written) / \(expected)")
+
+        DispatchQueue.main.async {
+            // self.progressView.progress = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
+            self.viewModel.progressValue(downloadTask, value: Float(totalBytesWritten) / Float(totalBytesExpectedToWrite))
+            
+        }
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        print("CHECK2 : \(session) , \(downloadTask)")
+        // The location is only temporary. You need to read it or copy it to your container before
+        // exiting this function. UIImage(contentsOfFile: ) seems to load the image lazily. NSData
+        // does it right away.
+        if let data = try? Data(contentsOf: location), let image = UIImage(data: data) {
+            DispatchQueue.main.async {
+                // self.imageView.contentMode = .scaleAspectFit
+                // self.imageView.clipsToBounds = true
+                // self.imageView.image = image
+                self.viewModel.downloadComplete(downloadTask, img: image)
+            }
+        } else {
+            fatalError("Cannot load the image")
+        }
+
+    }
 }

@@ -15,7 +15,7 @@ class DownloadImageModel {
     var isLoading: Bool { loading }
     private var loading: Bool = false
     
-    var image: UIImage? { imageData }
+    var image: UIImage? { imageData ?? UIImage.init(systemName: "photo.artframe") }
     private var imageData: UIImage?
     
     private var callback: ((String) -> Void)?
@@ -32,12 +32,18 @@ class DownloadImageModel {
     }
     
     public func reloadData(callback: @escaping (String) -> Void, progressCallback: @escaping (Int) -> Void) {
-        self.imageData = nil
-        self.progressValue = 0.0
-        self.loading = false
+        self.reloadAllData()
         self.callback = callback
         self.progressCallback = progressCallback
         self.startLoadData()
+    }
+    
+    public func reloadAllData() {
+        self.imageData = nil
+        self.progressValue = 0.0
+        self.loading = false
+        self.callback = nil
+        self.progressCallback = nil
     }
     
     public func endReloadData() {
@@ -46,6 +52,14 @@ class DownloadImageModel {
         self.callback?(urlStr)
         self.callback = nil
         self.progressCallback = nil
+    }
+    
+    public func setProgress(_ float: Float) {
+        self.progressValue = float
+    }
+    
+    public func setImage(_ img: UIImage?) {
+        self.imageData = img
     }
     
     private func startLoadData() {

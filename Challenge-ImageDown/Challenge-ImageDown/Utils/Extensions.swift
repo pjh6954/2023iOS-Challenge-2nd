@@ -11,6 +11,8 @@ import UIKit
 struct ArrayQueue<T> {
     // 빈 Array 선언
     private var queue: [T] = []
+    
+    public var publicQueue: [T] { self.queue }
 
     // Queue 내 원소 개수
     public var count: Int {

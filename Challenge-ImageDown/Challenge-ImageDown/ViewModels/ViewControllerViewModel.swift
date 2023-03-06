@@ -6,11 +6,17 @@
 //
 
 import Foundation
+import UIKit
 
 protocol ViewControllerViewModelInput {
     // LoadData(with optional index array)
     func reloadData(_ array: [Int]?)
     func loadImageStart(_ index: Int?)
+    func sessionSetting(_ session: URLSession)
+    // Progress 사용을 위해 아래 추가
+    // func progressValueSend()
+    func progressValue(_ downloadTask: URLSessionDownloadTask, value: Float)
+    func downloadComplete(_ downloadTask: URLSessionDownloadTask, img: UIImage?)
 }
 
 protocol ViewControllerViewModelOutput {
@@ -36,8 +42,15 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
     
     // private var waitQueue: Queue<DownloadImageModel> = .init()
     private var isLoading: Bool = false
-    private var loadingData : [String: DownloadImageModel] = [:]
-    private var completeDataURLQueue: ArrayQueue<String> = .init()
+    // private var loadingData : [String: DownloadImageModel] = [:]
+    private var loadingData : [String: (DownloadImageModel, URLSessionDownloadTask)] = [:]
+    // private var startDownloadingData : [String: (DownloadImageModel, URLSessionDownloadTask)] = [:]
+    // private var taskResumeURLQueue: ArrayQueue<String> = .init()
+    private var taskResumeURLSet: Set<String> = .init()
+    // private var completeDataURLQueue: ArrayQueue<String> = .init()
+    
+    private var session : URLSession!
+    private let downloadQueue = DispatchQueue(label: "downloadImg", qos: .background, attributes: .concurrent)
     // Input
     // 특정 인덱스 완료 후 reload 하도록 하거나, 모든 것들을 reload 하는데 사용되는 함수
     func reloadData(_ array: [Int]? = nil) {
@@ -52,10 +65,41 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
             self.setImgDataLoad(data: reloadData)
         } else {
             for element in imageLoadedData.reversed() {
+                element.reloadAllData()
                 self.setImgDataLoad(data: element)
             }
         }
         self.reloadData()
+    }
+    
+    func sessionSetting(_ session: URLSession) {
+        self.session = session
+    }
+    
+    func progressValue(_ downloadTask: URLSessionDownloadTask, value: Float) {
+        for (_, dataValue) in self.loadingData {
+            guard downloadTask.isEqual(dataValue.1) else { continue }
+            dataValue.0.setProgress(value)
+            self.reloadData()
+            break
+        }
+        
+    }
+    
+    func downloadComplete(_ downloadTask: URLSessionDownloadTask ,img: UIImage?) {
+        var completeKey : String!
+        for (key, dataValue) in self.loadingData {
+            guard downloadTask.isEqual(dataValue.1) else { continue }
+            completeKey = self.taskResumeURLSet.remove(key)
+            dataValue.0.setImage(img)
+            
+            
+        }
+        guard !completeKey.isEmpty else { self.isLoading = false; return }
+        self.loadingData.removeValue(forKey: completeKey)
+        self.reloadData()
+        self.isLoading = false
+        self.startDownload()
     }
     
     // Output
@@ -68,10 +112,52 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
 
 extension ViewControllerViewModel {
     private func setImgDataLoad(data: DownloadImageModel) {
+        /*
         data.reloadData(callback: reloadDataCallback(_:), progressCallback: reloadProgressCallback(_:))
         self.loadingData[data.urlStr] = data
+        */
+        
+        // Progress 추가버전
+        guard let session else { return }
+        guard let url = data.url else { return }
+        // session.downloadTask(with: url).resume()
+        if self.taskResumeURLSet.contains(data.urlStr) {
+            return
+        }
+        let downloadTask = session.downloadTask(with: url)
+        
+        self.loadingData[data.urlStr] = (data, downloadTask)
+        self.startDownload()
     }
     
+    // PROGRESS 추가하면서 추가된 함수
+    private func startDownload() {
+        print("CHECK!!!1  : \(self.loadingData)")
+        downloadQueue.async { [weak self] in
+            guard let `self` = self else { return }
+            guard !self.loadingData.isEmpty else {
+                self.isLoading = false
+                return
+            }
+            guard !self.isLoading else { return }
+            self.isLoading = true
+            for element in self.loadingData {
+                print("taskResumeURLSettaskResumeURLSet :: \(self.taskResumeURLSet)")
+                guard !self.taskResumeURLSet.contains(element.key) else {
+                    continue
+                }
+                element.value.1.resume()
+                self.taskResumeURLSet.insert(element.key)
+                break
+            }
+        }
+    }
+    
+    private func downloading() {
+        
+    }
+    
+    /*
     private func reloadProgressCallback(_ index: Int) {
         self.reloadData(nil)
     }
@@ -106,4 +192,5 @@ extension ViewControllerViewModel {
         }
         self.loadingWithQueue()
     }
+    */
 }

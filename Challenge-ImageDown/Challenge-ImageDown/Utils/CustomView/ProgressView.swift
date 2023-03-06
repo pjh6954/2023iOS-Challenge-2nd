@@ -64,7 +64,7 @@ class ProgressView: UIView {
     public func updateProgressZeroToOne(_ value: Float) {
         guard value >= 0.0 && value <= 1.0 else { return }
         guard let _ = self.widthConstraint else {
-            let widthConst = NSLayoutConstraint(item: progressBar, attribute: .width, relatedBy: .equal, toItem: self, attribute: .width, multiplier: 0.4, constant: 0)
+            let widthConst = NSLayoutConstraint(item: progressBar, attribute: .width, relatedBy: .equal, toItem: self, attribute: .width, multiplier: 0.0, constant: 0)
             widthConst.priority = .required
             self.widthConstraint = widthConst
             NSLayoutConstraint.activate([self.widthConstraint])
