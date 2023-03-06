@@ -13,7 +13,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var btnLoadAll: UIButton!
     
-    private let isUsingVM: Bool = false
+    // MVVM 사용할지 여부. true인 경우 ViewModel 사용해서 처리. false인 경우 datas를 사용해서 각 셀의 imageView에서 다운로드 처리
+    private let isUsingVM: Bool = true
     private var datas: [DownloadImageModel] {
         if isUsingVM {
             return []

@@ -31,12 +31,13 @@ protocol ViewControllerViewModelType {
 
 class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerViewModelOutput, ViewControllerViewModelType {
     // Public
+    // isUsingProgress가 true인 경우 session 사용해서 progress update 되도록 구현. false인 경우, model에서 처리 후 image 갱신 처리.
     public let isUsingProgress = true
     public var data: [DownloadImageModel] { self.imageLoadedData }
-    private let imageLoadedData : Array<DownloadImageModel> = Constants.imageLoadedData
     
     // Progress, non-progress 공통
     private var isLoading: Bool = false
+    private let imageLoadedData : Array<DownloadImageModel> = Constants.imageLoadedData
     
     // Progress 사용 안하는 방식
     private var loadingDataWithoutProgress : [String: DownloadImageModel] = [:]
