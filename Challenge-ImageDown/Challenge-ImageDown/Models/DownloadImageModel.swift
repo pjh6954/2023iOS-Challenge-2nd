@@ -85,7 +85,7 @@ class DownloadImageModel {
     private func downloadImage(from url: URL) {
         print("Download Started")
         getData(from: url) { data, response, error in
-            print("RESPONSE : \(response)")
+            // print("RESPONSE : \(response)")
             guard let data = data, error == nil else {
                 self.endReloadData()
                 return
@@ -111,7 +111,6 @@ class DownloadImageModel {
         print("Downloaded \(written) / \(expected)")
 
         DispatchQueue.main.async {
-            // self.progressView.progress = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
             self.progressValue = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
         }
     }
@@ -122,11 +121,6 @@ class DownloadImageModel {
         // does it right away.
         if let data = try? Data(contentsOf: location), let image = UIImage(data: data) {
             DispatchQueue.main.async {
-                /*
-                self.imageView.contentMode = .scaleAspectFit
-                self.imageView.clipsToBounds = true
-                self.imageView.image = image
-                */
                 self.imageData = image
             }
         } else {
@@ -135,6 +129,7 @@ class DownloadImageModel {
 
     }
 }
+
 /*
 class ViewController: UIViewController, URLSessionDelegate, URLSessionDownloadDelegate {
 
