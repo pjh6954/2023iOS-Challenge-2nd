@@ -14,7 +14,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var btnLoadAll: UIButton!
     
     // MVVM 사용할지 여부. true인 경우 ViewModel 사용해서 처리. false인 경우 datas를 사용해서 각 셀의 imageView에서 다운로드 처리
-    private let isUsingVM: Bool = true
+    private var isUsingVM: Bool { self.isUsingVMValue }
+    // UI 또는 Unit 테스트 때만 코드로 변경할 수 있도록 하기위한 변수 추가.
+    private var isUsingVMValue: Bool = true
     private var datas: [DownloadImageModel] {
         if isUsingVM {
             return []
@@ -79,7 +81,17 @@ class ViewController: UIViewController {
         }
     }
     
-    @objc private func actionBtnReloadAll(_ sender: UIButton) {
+    // Test일 때만 할 수 있도록 하자.
+    // https://stackoverflow.com/a/29991529
+    public func forTestUsingVM(_ value: Bool) {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            self.isUsingVMValue = value
+        }
+        #endif
+    }
+    
+    public func reloadAll() {
         if self.isUsingVM {
             self.viewModel.loadImageStart(nil)
         } else {
@@ -88,6 +100,10 @@ class ViewController: UIViewController {
                 cell.loadImage()
             }
         }
+    }
+    
+    @objc private func actionBtnReloadAll(_ sender: UIButton) {
+        self.reloadAll()
     }
 }
 

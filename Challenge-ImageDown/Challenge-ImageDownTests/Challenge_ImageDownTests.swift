@@ -10,16 +10,19 @@ import XCTest
 
 final class Challenge_ImageDownTests: XCTestCase {
     
+    var viewController : ViewController!
     var viewControllerViewModel: ViewControllerViewModel!
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         try super.setUpWithError()
         viewControllerViewModel = .init()
+        viewController = .init()
     }
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
+        viewController = nil
         viewControllerViewModel = nil
         try super.tearDownWithError()
     }
@@ -48,6 +51,16 @@ final class Challenge_ImageDownTests: XCTestCase {
         viewControllerViewModel.sessionSetting(session)
         
         viewControllerViewModel.loadImageStart(nil)
+    }
+    
+    func testVMUsing() throws {
+        /*
+        viewController.forTestUsingVM(false)
+        viewController.viewDidLoad()
+        sleep(2)
+        viewController.reloadAll()
+        sleep(5)
+        */
     }
 
     func testPerformanceExample() throws {
