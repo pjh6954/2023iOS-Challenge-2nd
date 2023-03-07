@@ -158,7 +158,7 @@ extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
         // request url에 header를 추가했음에도 expected 쪽에 -1이 나오는 경우가 있다. 이경우, https://stackoverflow.com/a/33372970 다음 링크 참고
         // 문제는 Content-Length 헤더도 없는 경우...이 경우는 어쩔 수 없다. 다 되면 그냥 1로 강제할 수 밖에
         let response: URLResponse? = downloadTask.response
-        // TODO: -1오는 값 확인 중이다...
+        // TODO: -1오는 값 확인 중이다... content-length 자체가 없는 경우 해결 법 확인 필요
         if let httpResponse = response as? HTTPURLResponse {
             let allHeaderFields = httpResponse.allHeaderFields
             let contentLengthString = allHeaderFields["Content-Length"]
