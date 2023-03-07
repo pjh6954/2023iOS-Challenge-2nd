@@ -75,15 +75,15 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
         if let index = index {
             guard let reloadData = imageLoadedData[safe: index] else { return }
             reloadData.reloadAllData()
-            self.setImgDataLoad(data: reloadData)
+            self.setImgDataLoad(data: reloadData, index: index)
         } else {
             // 여러번 동시에 할 때 강제종료 현상 발생되는 것 때문에 아래 코드 추가
             if self.isLoading {
                 return
             }
-            for element in imageLoadedData.reversed() {
+            for (index, element) in imageLoadedData.enumerated() {
                 element.reloadAllData()
-                self.setImgDataLoad(data: element)
+                self.setImgDataLoad(data: element, index: index)
             }
         }
         self.reloadData()
@@ -130,7 +130,7 @@ class ViewControllerViewModel : ViewControllerViewModelInput, ViewControllerView
 }
 
 extension ViewControllerViewModel {
-    private func setImgDataLoad(data: DownloadImageModel) {
+    private func setImgDataLoad(data: DownloadImageModel, index: Int) {
         if isUsingProgress {
             // Progress 추가버전
             guard let session else { return }
@@ -139,12 +139,15 @@ extension ViewControllerViewModel {
             if self.taskResumeURLSet.contains(data.urlStr) {
                 return
             }
-            let downloadTask = session.downloadTask(with: url)
+            // session delegate에서 download시에 expected 값이 -1이 나오는 경우가 있다. 이경우, https://stackoverflow.com/a/23585581 다음 링크 참고
+            var request = URLRequest(url: url)
+            request.addValue("", forHTTPHeaderField: "Accept-Encoding")
+            let downloadTask = session.downloadTask(with: request)
             
             self.loadingData[data.urlStr] = (data, downloadTask)
             self.startDownload()
         } else {
-            data.reloadData(callback: reloadDataCallback(_:), progressCallback: reloadProgressCallback(_:))
+            data.reloadData(index, callback: reloadDataCallback(_:), progressCallback: reloadProgressCallback(_:))
             self.loadingDataWithoutProgress[data.urlStr] = data
         }
     }
@@ -175,6 +178,8 @@ extension ViewControllerViewModel {
     // Progress 사용 안할 때 쓰기위한 것.
     private func reloadProgressCallback(_ index: Int) {
         self.reloadData(nil)
+        // print("CHECK? \(index)")
+        // self.reloadData([index])
     }
     
     // Progress 사용 안할 때 쓰기위한 것.

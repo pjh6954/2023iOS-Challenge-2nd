@@ -44,7 +44,10 @@ extension UIImageView {
     /// URL에서 이미지 다운로드하여 이미지뷰에 적용
     func download(from url: URL, completion: @escaping(_ error: Error?, _ progress: Float) -> Void) {
         Constants.bgQueue.async {
-            URLSession.shared.dataTask(with: url) { data, response, error in
+            var observer: NSKeyValueObservation?
+            let task = URLSession.shared.dataTask(with: url) { data, response, error in
+                observer?.invalidate()
+                observer = nil
                 guard let data = data, error == nil, let image = UIImage(data: data) else {
                     DispatchQueue.main.async { [weak self] in
                         // 실패 시 기본이미지
@@ -57,7 +60,13 @@ extension UIImageView {
                     self?.image = image
                     completion(nil, 1.0)
                 }
-            }.resume()
+            }
+            observer = task.progress.observe(\.fractionCompleted, options: [.new], changeHandler: { progress, change in
+                DispatchQueue.main.async {
+                    completion(nil, Float(progress.fractionCompleted))
+                }
+            })
+            task.resume()
         }
     }
 }

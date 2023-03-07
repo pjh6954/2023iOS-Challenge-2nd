@@ -154,10 +154,25 @@ extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        NSLog("downloadTask.response : \(String(describing: downloadTask.response))")
+        // request url에 header를 추가했음에도 expected 쪽에 -1이 나오는 경우가 있다. 이경우, https://stackoverflow.com/a/33372970 다음 링크 참고
+        // 문제는 Content-Length 헤더도 없는 경우...이 경우는 어쩔 수 없다. 다 되면 그냥 1로 강제할 수 밖에
+        let response: URLResponse? = downloadTask.response
+        // TODO: -1오는 값 확인 중이다...
+        if let httpResponse = response as? HTTPURLResponse {
+            let allHeaderFields = httpResponse.allHeaderFields
+            let contentLengthString = allHeaderFields["Content-Length"]
+            var contentLengthDouble: Double = 0.0
+            if let str = contentLengthString as? String {
+                print("STR! : \(str)")
+            }
+        }
+        
         print("CHECK  : \(session) , \(downloadTask)")
         print("CHECK_ : \(downloadTask)")
         let written = Constants.byteFormatter.string(fromByteCount: totalBytesWritten)
         let expected = Constants.byteFormatter.string(fromByteCount: totalBytesExpectedToWrite)
+        
         print("Downloaded \(written) / \(expected)")
 
         DispatchQueue.main.async {
@@ -179,6 +194,7 @@ extension ViewController : URLSessionDelegate, URLSessionDownloadDelegate {
                 // self.imageView.clipsToBounds = true
                 // self.imageView.image = image
                 if self.isUsingVM {
+                    self.viewModel.progressValue(downloadTask, value: Float(1))
                     self.viewModel.downloadComplete(downloadTask, img: image)
                 }
             }

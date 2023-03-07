@@ -81,6 +81,7 @@ final class AppGCDViewController: UIViewController {
     }
 }
 
+
 final class DisplayedView: UIView {
     
     private lazy var imageView: UIImageView = {
@@ -117,6 +118,7 @@ final class DisplayedView: UIView {
         return view
     }()
     
+    // Progress 를 얻기 위한 Observer
     private var observation: NSKeyValueObservation!
     private var task: URLSessionDataTask!
     
